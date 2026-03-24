@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>미국 증시 데일리 브리핑 | 매일 아침 받아보세요</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600&family=Noto+Sans+KR:wght@300;400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #050810;
+    --bg2:      #0a0f1e;
+    --bg3:      #0f1628;
+    --green:    #00e676;
+    --green-dim:#00a152;
+    --red:      #ff3d57;
+    --gold:     #ffd600;
+    --text:     #e8eaf6;
+    --text-dim: #7986cb;
+    --border:   #1a2340;
+    --mono:     'IBM Plex Mono', monospace;
+    --sans:     'Noto Sans KR', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  /* ── 티커 테이프 ── */
+  .ticker-wrap {
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+    padding: 10px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .ticker-track {
+    display: flex;
+    animation: ticker 30s linear infinite;
+    white-space: nowrap;
+  }
+  .ticker-item {
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 0 32px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .ticker-name { color: var(--text-dim); }
+  .ticker-price { color: var(--text); font-weight: 600; }
+  .ticker-up   { color: var(--green); }
+  .ticker-dn   { color: var(--red); }
+  @keyframes ticker {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  /* ── 네비 ── */
+  nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 60px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    font-family: var(--mono);
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--green);
+    letter-spacing: -0.5px;
+  }
+  .logo span { color: var(--text-dim); font-weight: 300; }
+  .nav-cta {
+    background: var(--green);
+    color: #000;
+    border: none;
+    padding: 10px 24px;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+  .nav-cta:hover { background: #fff; transform: translateY(-1px); }
+
+  /* ── 히어로 ── */
+  .hero {
+    min-height: 88vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    padding: 80px 60px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* 배경 그리드 */
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 60px 60px;
+    opacity: 0.3;
+  }
+
+  /* 배경 글로우 */
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: 10%;
+    left: 30%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(0,230,118,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-left {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-right: 60px;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0,230,118,0.08);
+    border: 1px solid rgba(0,230,118,0.2);
+    padding: 6px 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--green);
+    letter-spacing: 1px;
+    margin-bottom: 32px;
+    width: fit-content;
+  }
+  .badge-dot {
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  h1 {
+    font-size: clamp(36px, 4vw, 58px);
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -1.5px;
+    margin-bottom: 24px;
+  }
+  h1 .accent { color: var(--green); }
+  h1 .num {
+    font-family: var(--mono);
+    color: var(--gold);
+  }
+
+  .hero-desc {
+    font-size: 16px;
+    line-height: 1.8;
+    color: var(--text-dim);
+    margin-bottom: 48px;
+    max-width: 460px;
+  }
+
+  /* 구독 폼 */
+  .subscribe-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 460px;
+  }
+  .input-row {
+    display: flex;
+    gap: 0;
+  }
+  .email-input {
+    flex: 1;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-right: none;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    padding: 16px 20px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .email-input::placeholder { color: var(--text-dim); opacity: 0.5; }
+  .email-input:focus { border-color: var(--green); }
+  .submit-btn {
+    background: var(--green);
+    color: #000;
+    border: none;
+    padding: 16px 28px;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+  .submit-btn:hover { background: #fff; }
+  .submit-btn.loading { opacity: 0.7; cursor: not-allowed; }
+
+  .form-note {
+    font-size: 11px;
+    color: var(--text-dim);
+    opacity: 0.6;
+    font-family: var(--mono);
+  }
+
+  .success-msg {
+    display: none;
+    background: rgba(0,230,118,0.08);
+    border: 1px solid rgba(0,230,118,0.3);
+    padding: 16px 20px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--green);
+  }
+
+  /* 지표 카운터 */
+  .hero-stats {
+    display: flex;
+    gap: 32px;
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+  }
+  .stat-item {}
+  .stat-num {
+    font-family: var(--mono);
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--green);
+    display: block;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+  }
+
+  /* 오른쪽 - 뉴스레터 미리보기 */
+  .hero-right {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .preview-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    width: 100%;
+    max-width: 440px;
+    box-shadow: 0 40px 120px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,230,118,0.05);
+    animation: float 6s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50%       { transform: translateY(-12px); }
+  }
+
+  .preview-header {
+    background: var(--bg3);
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .preview-title-area {}
+  .preview-from {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--green);
+    margin-bottom: 3px;
+    letter-spacing: 0.5px;
+  }
+  .preview-subj {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .preview-date {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  .preview-body { padding: 20px; }
+
+  .preview-opening {
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text);
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .preview-market { margin-bottom: 16px; }
+  .preview-section-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+
+  .market-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 0;
+    border-bottom: 1px solid rgba(26,35,64,0.5);
+  }
+  .market-name {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .market-vals { display: flex; gap: 12px; align-items: center; }
+  .market-price {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .market-pct {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 2px 6px;
+    font-weight: 600;
+  }
+  .up-pct { background: rgba(0,230,118,0.1); color: var(--green); }
+  .dn-pct { background: rgba(255,61,87,0.1); color: var(--red); }
+
+  .preview-news { margin-top: 16px; }
+  .news-item {
+    display: flex;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(26,35,64,0.5);
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--text);
+  }
+  .news-bullet { color: var(--green); flex-shrink: 0; font-family: var(--mono); }
+
+  .preview-blur {
+    position: relative;
+    height: 60px;
+    overflow: hidden;
+    margin: 0 -20px -20px;
+  }
+  .preview-blur::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(transparent, var(--bg2));
+    z-index: 1;
+  }
+  .preview-blur-cta {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--green);
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── 특징 섹션 ── */
+  .features {
+    padding: 100px 60px;
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+  }
+  .section-header {
+    text-align: center;
+    margin-bottom: 64px;
+  }
+  .section-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--green);
+    letter-spacing: 2px;
+    display: block;
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-size: 36px;
+    font-weight: 900;
+    letter-spacing: -1px;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+  .feature-card {
+    background: var(--bg);
+    padding: 40px 32px;
+    border: 1px solid var(--border);
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--green);
+    transform: scaleX(0);
+    transition: transform 0.3s;
+  }
+  .feature-card:hover { border-color: rgba(0,230,118,0.3); transform: translateY(-4px); }
+  .feature-card:hover::before { transform: scaleX(1); }
+
+  .feature-icon {
+    font-size: 28px;
+    margin-bottom: 20px;
+    display: block;
+  }
+  .feature-name {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: -0.3px;
+  }
+  .feature-desc {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+
+  /* ── 유튜브 섹션 ── */
+  .youtube-section {
+    padding: 100px 60px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .yt-left h2 {
+    font-size: 36px;
+    font-weight: 900;
+    letter-spacing: -1px;
+    margin-bottom: 20px;
+    line-height: 1.2;
+  }
+  .yt-left p {
+    font-size: 15px;
+    color: var(--text-dim);
+    line-height: 1.8;
+    margin-bottom: 32px;
+  }
+  .yt-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--red);
+    color: #fff;
+    padding: 14px 24px;
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .yt-link:hover { background: #ff1744; transform: translateY(-2px); }
+
+  /* 쇼츠 폰 목업 */
+  .phone-mockup {
+    position: relative;
+    width: 240px;
+    margin: 0 auto;
+  }
+  .phone-frame {
+    background: var(--bg3);
+    border: 2px solid var(--border);
+    border-radius: 32px;
+    padding: 12px;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+  }
+  .phone-screen {
+    background: linear-gradient(135deg, #0a1628 0%, #0d2218 100%);
+    border-radius: 22px;
+    padding: 20px 16px;
+    aspect-ratio: 9/16;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+  .phone-screen::before {
+    content: '';
+    position: absolute;
+    top: 20%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--green), transparent);
+    animation: scan 3s linear infinite;
+  }
+  @keyframes scan {
+    0% { top: 20%; opacity: 0; }
+    50% { opacity: 0.6; }
+    100% { top: 80%; opacity: 0; }
+  }
+  .phone-top { text-align: center; }
+  .phone-title { font-size: 9px; font-weight: 700; color: #fff; margin-bottom: 3px; font-family: var(--sans); }
+  .phone-date { font-family: var(--mono); font-size: 7px; color: var(--text-dim); }
+  .phone-cards { display: flex; flex-direction: column; gap: 5px; }
+  .phone-card {
+    background: rgba(255,255,255,0.04);
+    border-radius: 6px;
+    padding: 6px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .phone-card-name { font-family: var(--mono); font-size: 7px; color: var(--text-dim); }
+  .phone-card-val  { font-family: var(--mono); font-size: 8px; font-weight: 600; }
+  .phone-bottom { text-align: center; }
+  .phone-cta { font-size: 7px; color: var(--gold); font-weight: 700; font-family: var(--sans); }
+
+  /* ── 하단 CTA ── */
+  .bottom-cta {
+    padding: 120px 60px;
+    text-align: center;
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .bottom-cta::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 800px;
+    height: 400px;
+    background: radial-gradient(ellipse, rgba(0,230,118,0.05) 0%, transparent 70%);
+  }
+  .bottom-cta h2 {
+    font-size: 48px;
+    font-weight: 900;
+    letter-spacing: -2px;
+    margin-bottom: 16px;
+    position: relative;
+  }
+  .bottom-cta p {
+    color: var(--text-dim);
+    font-size: 16px;
+    margin-bottom: 48px;
+    position: relative;
+  }
+  .bottom-form {
+    display: flex;
+    gap: 0;
+    max-width: 480px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  /* ── 푸터 ── */
+  footer {
+    padding: 32px 60px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .footer-logo { font-family: var(--mono); font-size: 14px; color: var(--green); }
+  .footer-note { font-family: var(--mono); font-size: 11px; color: var(--text-dim); opacity: 0.5; }
+
+  /* ── 반응형 ── */
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; padding: 48px 24px; }
+    .hero-right { display: none; }
+    .features-grid { grid-template-columns: 1fr; }
+    .youtube-section { grid-template-columns: 1fr; padding: 60px 24px; }
+    nav { padding: 16px 24px; }
+    .features, .bottom-cta { padding: 60px 24px; }
+    footer { padding: 24px; flex-direction: column; gap: 12px; text-align: center; }
+  }
+
+  /* 애니메이션 */
+  .fade-up {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .fade-up.visible { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- 티커 테이프 -->
+<div class="ticker-wrap">
+  <div class="ticker-track" id="ticker">
+    <!-- JS로 동적 생성 -->
+  </div>
+</div>
+
+<!-- 네비 -->
+<nav>
+  <div class="logo">MARKET<span>/daily</span></div>
+  <button class="nav-cta" onclick="document.getElementById('hero-form').scrollIntoView({behavior:'smooth'})">
+    무료 구독 →
+  </button>
+</nav>
+
+<!-- 히어로 -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="badge">
+      <div class="badge-dot"></div>
+      DAILY BRIEFING · 매일 오전 7시 발송
+    </div>
+
+    <h1>
+      미국 증시<br>
+      <span class="accent">핵심만</span> 담아<br>
+      <span class="num">60초</span>에 전달
+    </h1>
+
+    <p class="hero-desc">
+      S&P500, 나스닥, 다우존스부터 달러/원 환율까지.<br>
+      매일 아침 이메일 한 통으로 미국 시장 흐름을<br>
+      완벽하게 파악하세요.
+    </p>
+
+    <div class="subscribe-form" id="hero-form">
+      <div class="input-row">
+        <input
+          type="email"
+          class="email-input"
+          id="hero-email"
+          placeholder="이메일 주소를 입력하세요"
+        />
+        <button class="submit-btn" id="hero-btn" onclick="handleSubscribe('hero')">
+          무료 구독
+        </button>
+      </div>
+      <div class="success-msg" id="hero-success">
+        ✓ 구독 완료! 내일 아침 7시에 첫 브리핑을 받아보세요.
+      </div>
+      <p class="form-note">✓ 무료 · 광고 없음 · 언제든지 구독 해제 가능</p>
+    </div>
+
+    <div class="hero-stats">
+      <div class="stat-item">
+        <span class="stat-num" data-target="6">0</span>
+        <span class="stat-label">추적 지수</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">365</span>
+        <span class="stat-label">일/년 발송</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">100%</span>
+        <span class="stat-label">무료</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="preview-card">
+      <div class="preview-header">
+        <div class="preview-title-area">
+          <div class="preview-from">FROM: MARKET/DAILY</div>
+          <div class="preview-subj">[03월 24일] 미국 증시 브리핑 📉 S&P500 -1.77%</div>
+        </div>
+        <div class="preview-date">07:00 AM</div>
+      </div>
+      <div class="preview-body">
+        <p class="preview-opening">
+          오늘 미국 증시는 전반적 하락세를 보였습니다. S&P500이 1.77% 하락하며 투자자들의 주목을 받았습니다. 주요 지수 현황을 확인하세요.
+        </p>
+
+        <div class="preview-market">
+          <div class="preview-section-title">📊 주요 지수</div>
+          <div class="market-row">
+            <span class="market-name">S&P 500</span>
+            <div class="market-vals">
+              <span class="market-price">6,581.00</span>
+              <span class="market-pct dn-pct">▼ 1.77%</span>
+            </div>
+          </div>
+          <div class="market-row">
+            <span class="market-name">나스닥</span>
+            <div class="market-vals">
+              <span class="market-price">21,946.76</span>
+              <span class="market-pct dn-pct">▼ 1.91%</span>
+            </div>
+          </div>
+          <div class="market-row">
+            <span class="market-name">달러/원</span>
+            <div class="market-vals">
+              <span class="market-price">1,489.08</span>
+              <span class="market-pct dn-pct">▼ 1.01%</span>
+            </div>
+          </div>
+          <div class="market-row">
+            <span class="market-name">금</span>
+            <div class="market-vals">
+              <span class="market-price">4,413.20</span>
+              <span class="market-pct up-pct">▲ 0.21%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="preview-news">
+          <div class="preview-section-title">📰 오늘의 핵심 뉴스</div>
+          <div class="news-item">
+            <span class="news-bullet">▸</span>
+            EU-호주 무역 협정 체결로 호주산 소고기 수출 확대 전망
+          </div>
+          <div class="news-item">
+            <span class="news-bullet">▸</span>
+            미-이란 협상 불확실성에 국제 유가 강세 지속
+          </div>
+        </div>
+
+        <div class="preview-blur">
+          <div class="preview-blur-cta">▸ 전체 내용 보려면 구독하세요</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 특징 -->
+<section class="features">
+  <div class="section-header">
+    <span class="section-tag">WHY MARKET/DAILY</span>
+    <h2 class="section-title">이런 분들께 딱 맞습니다</h2>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card fade-up">
+      <span class="feature-icon">⏰</span>
+      <div class="feature-name">바쁜 직장인</div>
+      <p class="feature-desc">출근 전 5분, 이메일 하나로 오늘 미국 증시 흐름을 완전히 파악할 수 있습니다.</p>
+    </div>
+    <div class="feature-card fade-up" style="transition-delay: 0.1s">
+      <span class="feature-icon">📊</span>
+      <div class="feature-name">주식 입문자</div>
+      <p class="feature-desc">어려운 경제 용어 없이 핵심만 쉽고 친근하게 설명합니다. 매일 읽다 보면 자연스럽게 실력이 쌓입니다.</p>
+    </div>
+    <div class="feature-card fade-up" style="transition-delay: 0.2s">
+      <span class="feature-icon">🎯</span>
+      <div class="feature-name">장기 투자자</div>
+      <p class="feature-desc">오늘의 시장 흐름과 내일 주목할 포인트를 매일 점검하여 현명한 투자 판단을 내리세요.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 유튜브 쇼츠 -->
+<section>
+  <div class="youtube-section">
+    <div class="yt-left fade-up">
+      <span class="section-tag">YOUTUBE SHORTS</span>
+      <h2>60초 영상으로도<br>만나보세요</h2>
+      <p>
+        이메일 뉴스레터와 함께 유튜브 쇼츠로도 매일 업로드됩니다.
+        출퇴근길, 잠깐의 여유 시간에 영상으로 확인하세요.
+      </p>
+      <a href="https://www.youtube.com/@지금미국은" target="_blank" class="yt-link">
+        <svg width="20" height="14" viewBox="0 0 20 14" fill="white">
+          <path d="M19.6 2.2C19.4 1.4 18.8.8 18 .6 16.4.2 10 .2 10 .2s-6.4 0-8 .4C1.2.8.6 1.4.4 2.2 0 3.8 0 7 0 7s0 3.2.4 4.8c.2.8.8 1.4 1.6 1.6C3.6 13.8 10 13.8 10 13.8s6.4 0 8-.4c.8-.2 1.4-.8 1.6-1.6C20 10.2 20 7 20 7s0-3.2-.4-4.8zM8 10V4l5.3 3L8 10z"/>
+        </svg>
+        유튜브 채널 구독
+      </a>
+    </div>
+
+    <div class="phone-mockup fade-up" style="transition-delay:0.2s">
+      <div class="phone-frame">
+        <div class="phone-screen">
+          <div class="phone-top">
+            <div class="phone-title">미국 증시 데일리 브리핑</div>
+            <div class="phone-date">2026.03.24</div>
+          </div>
+          <div class="phone-cards">
+            <div class="phone-card">
+              <span class="phone-card-name">S&P 500</span>
+              <span class="phone-card-val" style="color:#ff3d57">▼ 1.77%</span>
+            </div>
+            <div class="phone-card">
+              <span class="phone-card-name">나스닥</span>
+              <span class="phone-card-val" style="color:#ff3d57">▼ 1.91%</span>
+            </div>
+            <div class="phone-card">
+              <span class="phone-card-name">달러/원</span>
+              <span class="phone-card-val" style="color:#ff3d57">▼ 1.01%</span>
+            </div>
+            <div class="phone-card">
+              <span class="phone-card-name">금</span>
+              <span class="phone-card-val" style="color:#00e676">▲ 0.21%</span>
+            </div>
+          </div>
+          <div class="phone-bottom">
+            <div class="phone-cta">구독 + 좋아요 = 매일 증시 브리핑!</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 하단 CTA -->
+<section class="bottom-cta">
+  <h2>지금 바로 시작하세요</h2>
+  <p>매일 아침 7시, 미국 증시 브리핑이 이메일로 도착합니다.</p>
+  <div class="bottom-form">
+    <input
+      type="email"
+      class="email-input"
+      id="bottom-email"
+      placeholder="이메일 주소 입력"
+    />
+    <button class="submit-btn" id="bottom-btn" onclick="handleSubscribe('bottom')">
+      무료 구독
+    </button>
+  </div>
+  <div class="success-msg" id="bottom-success" style="max-width:480px;margin:16px auto 0;">
+    ✓ 구독 완료! 내일 아침 7시에 첫 브리핑을 받아보세요.
+  </div>
+  <p class="form-note" style="margin-top:14px">✓ 무료 · 스팸 없음 · 언제든 해제 가능</p>
+</section>
+
+<!-- 푸터 -->
+<footer>
+  <div class="footer-logo">MARKET/daily</div>
+  <div class="footer-note">© 2026 MARKET/daily · 본 뉴스레터는 투자 권유가 아닌 정보 제공 목적입니다</div>
+</footer>
+
+<script>
+// ── 티커 데이터 ──
+const tickers = [
+  { name: 'S&P500',    price: '6,581.00', pct: '-1.77%', up: false },
+  { name: 'NASDAQ',    price: '21,946.76',pct: '-1.91%', up: false },
+  { name: 'DOW',       price: '46,208.47',pct: '-1.57%', up: false },
+  { name: 'USD/KRW',   price: '1,489.08', pct: '-1.01%', up: false },
+  { name: 'GOLD',      price: '4,413.20', pct: '+0.21%', up: true  },
+  { name: 'BTC/USD',   price: '70,821.43',pct: '-0.13%', up: false },
+];
+
+function buildTicker() {
+  const track = document.getElementById('ticker');
+  const items = [...tickers, ...tickers].map(t => `
+    <div class="ticker-item">
+      <span class="ticker-name">${t.name}</span>
+      <span class="ticker-price">${t.price}</span>
+      <span class="${t.up ? 'ticker-up' : 'ticker-dn'}">${t.pct}</span>
+    </div>
+  `).join('');
+  track.innerHTML = items;
+}
+buildTicker();
+
+// ── 구독 처리 ──
+// 실제 서비스 연결: Formspree, Google Form, 또는 자체 서버로 교체하세요
+const FORMSPREE_URL = 'https://formspree.io/f/xjgpbgor';
+
+async function handleSubscribe(section) {
+  const email = document.getElementById(`${section}-email`).value.trim();
+  const btn   = document.getElementById(`${section}-btn`);
+  const succ  = document.getElementById(`${section}-success`);
+
+  if (!email || !email.includes('@')) {
+    document.getElementById(`${section}-email`).style.borderColor = '#ff3d57';
+    return;
+  }
+
+  btn.textContent = '처리 중...';
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  try {
+    // Formspree로 전송 (설정 전까지는 콘솔 출력)
+    if (FORMSPREE_URL.includes('YOUR_FORM_ID')) {
+      // 데모 모드: 실제 연결 없이 성공 처리
+      await new Promise(r => setTimeout(r, 800));
+      console.log('구독 이메일:', email);
+    } else {
+      await fetch(FORMSPREE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+    }
+
+    document.getElementById(`${section}-email`).style.display = 'none';
+    btn.style.display = 'none';
+    succ.style.display = 'block';
+
+  } catch (e) {
+    btn.textContent = '오류 발생. 다시 시도하세요.';
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
+}
+
+// 엔터키 처리
+document.querySelectorAll('.email-input').forEach(input => {
+  input.addEventListener('keypress', e => {
+    if (e.key === 'Enter') {
+      const sec = input.id.replace('-email', '');
+      handleSubscribe(sec);
+    }
+  });
+  input.addEventListener('focus', () => input.style.borderColor = '');
+});
+
+// ── 스크롤 애니메이션 ──
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
