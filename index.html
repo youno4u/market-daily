@@ -899,7 +899,7 @@ buildTicker();
 
 // ── 구독 처리 ──
 // 실제 서비스 연결: Formspree, Google Form, 또는 자체 서버로 교체하세요
-const FORMSPREE_URL = 'https://script.google.com/macros/s/AKfycbyBTiuX58ZrgdEhiQGKcAhKxW5TXC1moEJ6k0aYtynGYNwazn5B7zDXLz0hkFrG71ZN/exec';
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyBTiuX58ZrgdEhiQGKcAhKxW5TXC1moEJ6k0aYtynGYNwazn5B7zDXLz0hkFrG71ZN/exec';
 
 async function handleSubscribe(section) {
   const email = document.getElementById(`${section}-email`).value.trim();
@@ -916,18 +916,11 @@ async function handleSubscribe(section) {
   btn.disabled = true;
 
   try {
-    // Formspree로 전송 (설정 전까지는 콘솔 출력)
-    if (FORMSPREE_URL.includes('YOUR_FORM_ID')) {
-      // 데모 모드: 실제 연결 없이 성공 처리
-      await new Promise(r => setTimeout(r, 800));
-      console.log('구독 이메일:', email);
-    } else {
-      await fetch(FORMSPREE_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ email })
-      });
-    }
+    // Google Apps Script는 GET + 파라미터 방식이 가장 안정적
+    await fetch(`${SHEETS_URL}?email=${encodeURIComponent(email)}`, {
+      method: 'GET',
+      mode: 'no-cors',
+    });
 
     document.getElementById(`${section}-email`).style.display = 'none';
     btn.style.display = 'none';
