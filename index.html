@@ -874,19 +874,31 @@
 </footer>
 
 <script>
-// ── 티커 데이터 ──
-const tickers = [
-  { name: 'S&P500',    price: '6,581.00', pct: '-1.77%', up: false },
-  { name: 'NASDAQ',    price: '21,946.76',pct: '-1.91%', up: false },
-  { name: 'DOW',       price: '46,208.47',pct: '-1.57%', up: false },
-  { name: 'USD/KRW',   price: '1,489.08', pct: '-1.01%', up: false },
-  { name: 'GOLD',      price: '4,413.20', pct: '+0.21%', up: true  },
-  { name: 'BTC/USD',   price: '70,821.43',pct: '-0.13%', up: false },
+// ── 실시간 시장 데이터 ──
+const PROXY = 'https://api.allorigins.win/raw?url=';
+
+const TICKER_CONFIG = [
+  { name: 'S&P500',  symbol: '%5EGSPC' },
+  { name: 'NASDAQ',  symbol: '%5EIXIC' },
+  { name: 'DOW',     symbol: '%5EDJI'  },
+  { name: 'USD/KRW', symbol: 'KRW%3DX' },
+  { name: 'GOLD',    symbol: 'GC%3DF'  },
+  { name: 'BTC/USD', symbol: 'BTC-USD' },
 ];
 
-function buildTicker() {
+// 하드코딩 기본값 (로드 실패 시 표시)
+const DEFAULT_TICKERS = [
+  { name: 'S&P500',  price: '-',  pct: '-',     up: false },
+  { name: 'NASDAQ',  price: '-',  pct: '-',     up: false },
+  { name: 'DOW',     price: '-',  pct: '-',     up: false },
+  { name: 'USD/KRW', price: '-',  pct: '-',     up: false },
+  { name: 'GOLD',    price: '-',  pct: '-',     up: true  },
+  { name: 'BTC/USD', price: '-',  pct: '-',     up: false },
+];
+
+function buildTicker(data) {
   const track = document.getElementById('ticker');
-  const items = [...tickers, ...tickers].map(t => `
+  const items = [...data, ...data].map(t => `
     <div class="ticker-item">
       <span class="ticker-name">${t.name}</span>
       <span class="ticker-price">${t.price}</span>
@@ -895,10 +907,86 @@ function buildTicker() {
   `).join('');
   track.innerHTML = items;
 }
-buildTicker();
+
+async function fetchTicker(cfg) {
+  try {
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${cfg.symbol}?interval=1d&range=5d`;
+    const res  = await fetch(PROXY + encodeURIComponent(url));
+    const json = await res.json();
+    const meta = json.chart.result[0].meta;
+    const curr = meta.regularMarketPrice;
+    const prev = meta.previousClose || meta.chartPreviousClose;
+    const pct  = ((curr - prev) / prev * 100).toFixed(2);
+    const up   = pct >= 0;
+    const price = curr >= 1000
+      ? curr.toLocaleString('en-US', {maximumFractionDigits: 0})
+      : curr.toLocaleString('en-US', {maximumFractionDigits: 2});
+    return { name: cfg.name, price, pct: `${up ? '+' : ''}${pct}%`, up };
+  } catch {
+    return null;
+  }
+}
+
+async function loadMarketData() {
+  buildTicker(DEFAULT_TICKERS); // 먼저 기본값 표시
+
+  try {
+    const results = await Promise.all(TICKER_CONFIG.map(fetchTicker));
+    const valid   = results.map((r, i) => r || DEFAULT_TICKERS[i]);
+    buildTicker(valid);
+
+    // 히어로 섹션 미리보기 카드도 업데이트
+    updatePreviewCard(valid);
+  } catch (e) {
+    console.warn('시장 데이터 로드 실패:', e);
+  }
+}
+
+function updatePreviewCard(data) {
+  const map = {};
+  data.forEach(d => { map[d.name] = d; });
+
+  const rows = document.querySelectorAll('.market-row');
+  const names = ['S&P500', 'NASDAQ', 'DOW', 'USD/KRW'];
+  rows.forEach((row, i) => {
+    const d = map[names[i]];
+    if (!d) return;
+    const priceEl = row.querySelector('.market-price');
+    const pctEl   = row.querySelector('.market-pct');
+    if (priceEl) priceEl.textContent = d.price;
+    if (pctEl) {
+      pctEl.textContent = d.up ? `▲ ${d.pct.replace('+','')}` : `▼ ${d.pct.replace('-','')}`;
+      pctEl.className = `market-pct ${d.up ? 'up-pct' : 'dn-pct'}`;
+    }
+  });
+
+  // 폰 목업 카드도 업데이트
+  const phoneCards = document.querySelectorAll('.phone-card');
+  const phoneNames = ['S&P500', 'NASDAQ', 'USD/KRW', 'GOLD'];
+  phoneCards.forEach((card, i) => {
+    const d = map[phoneNames[i]];
+    if (!d) return;
+    const valEl = card.querySelector('.phone-card-val');
+    if (valEl) {
+      valEl.textContent = d.up ? `▲ ${d.pct.replace('+','')}` : `▼ ${d.pct.replace('-','')}`;
+      valEl.style.color = d.up ? '#00e676' : '#ff3d57';
+    }
+  });
+
+  // 날짜도 오늘로 업데이트
+  const today = new Date();
+  const dateStr = `${today.getFullYear()}.${String(today.getMonth()+1).padStart(2,'0')}.${String(today.getDate()).padStart(2,'0')}`;
+  document.querySelectorAll('.preview-date, .phone-date').forEach(el => {
+    el.textContent = dateStr;
+  });
+}
+
+// 페이지 로드 시 실행
+loadMarketData();
+// 5분마다 자동 갱신
+setInterval(loadMarketData, 5 * 60 * 1000);
 
 // ── 구독 처리 ──
-// 실제 서비스 연결: Formspree, Google Form, 또는 자체 서버로 교체하세요
 const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxOpJl2Sj2-RLYmhx1ouFAthBH3LxtoLHk1uzR-FDDW-tF1GuElHG3AnVkwfmENQRMl/exec';
 
 async function handleSubscribe(section) {
@@ -916,16 +1004,13 @@ async function handleSubscribe(section) {
   btn.disabled = true;
 
   try {
-    // Google Apps Script는 GET + 파라미터 방식이 가장 안정적
     await fetch(`${SHEETS_URL}?email=${encodeURIComponent(email)}`, {
       method: 'GET',
       mode: 'no-cors',
     });
-
     document.getElementById(`${section}-email`).style.display = 'none';
     btn.style.display = 'none';
     succ.style.display = 'block';
-
   } catch (e) {
     btn.textContent = '오류 발생. 다시 시도하세요.';
     btn.classList.remove('loading');
